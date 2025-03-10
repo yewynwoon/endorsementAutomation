@@ -263,7 +263,7 @@ def process_all_subfolders(batch_folder, output_folder, stamp_image_path):
             
             for file_name in os.listdir(subfolder_path):
                 file_path = os.path.join(subfolder_path, file_name)
-                if "Layout" in file_name and file_name.lower().endswith(".pdf"):
+                if "layout" in file_name.lower() and file_name.lower().endswith(".pdf"):
                     layout_pdf = file_path
                     print(f"Found layout PDF: {file_name}")
                 elif file_name.lower().endswith((".png", ".jpg", ".jpeg")):
@@ -304,8 +304,8 @@ def process_all_subfolders(batch_folder, output_folder, stamp_image_path):
 
 # Example usage
 if __name__ == "__main__":
-    batch_folder = r'C:\Users\yewyn\Documents\Verdant\Batch 71'
-    output_folder = r'C:\Users\yewyn\Documents\Verdant\Batch 71 Retry'
+    batch_folder = r'C:\Users\yewyn\Documents\Verdant\Batch 72 Amend'
+    output_folder = r'C:\Users\yewyn\Documents\Verdant\Batch 72 Endorsed'
     stamp_image_path = r'C:\Users\yewyn\Documents\Verdant\newStamp.png'
 
     process_all_subfolders(batch_folder, output_folder, stamp_image_path)
