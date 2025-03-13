@@ -141,6 +141,8 @@ def process_all_subfolders(batch_folder, output_folder, stamp_image_path):
     if not os.path.exists(output_folder):
         os.makedirs(output_folder)
     
+    no_output_folders = []  # List to store subfolders with no output
+
     for subfolder_name in os.listdir(batch_folder):
         subfolder_path = os.path.join(batch_folder, subfolder_name)
         if os.path.isdir(subfolder_path):
@@ -149,7 +151,7 @@ def process_all_subfolders(batch_folder, output_folder, stamp_image_path):
             
             for file_name in os.listdir(subfolder_path):
                 file_path = os.path.join(subfolder_path, file_name)
-                if "Layout" in file_name and file_name.lower().endswith(".pdf"):
+                if file_name.lower().endswith(".pdf"):
                     layout_pdf = file_path
                 elif file_name.lower().endswith((".png", ".jpg", ".jpeg")):
                     image_files.append(file_path)
@@ -166,11 +168,20 @@ def process_all_subfolders(batch_folder, output_folder, stamp_image_path):
                 process_pdf_with_stamp_and_images(layout_pdf, image_files, stamp_image_path, output_pdf_path)
                 
                 print(f"Processed {layout_pdf}")
+            else:
+                # If no PDF or no images, add the subfolder to the no_output_folders list
+                no_output_folders.append(subfolder_name)
+
+    # Print folders with no output at the end
+    if no_output_folders:
+        print("\nSubfolders with no output:")
+        for folder in no_output_folders:
+            print(folder)
 
 # Example usage
 if __name__ == "__main__":
-    batch_folder = r'C:\Users\yewyn\Documents\Verdant\Batch 73'
-    output_folder = r'C:\Users\yewyn\Documents\Verdant\Batch 73 Test'
-    stamp_image_path = r'C:\Users\yewyn\Documents\Verdant\newStamp.png'
+    batch_folder = r'C:\Users\nb1633\Documents\Batch 76'
+    output_folder = r'C:\Users\nb1633\Documents\Batch 76 Endorsed'
+    stamp_image_path = r'C:\Users\nb1633\Documents\newStamp.png'
 
     process_all_subfolders(batch_folder, output_folder, stamp_image_path)
