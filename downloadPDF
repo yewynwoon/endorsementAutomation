@@ -56,17 +56,16 @@ def download_file_from_gdrive(service, file_id, folder_path):
         # Prepare the file path using the actual file name
         file_path = os.path.join(folder_path, file_name)
 
-        # Ensure the folder exists
-        os.makedirs(folder_path, exist_ok=True)
-
         # Write the file to the local system
         with open(file_path, 'wb') as drive_file:
             drive_file.write(response.content)
         
         print(f"Downloaded Google Drive file: {file_path}")
+        return True, None  # Return success status and no error
 
     except Exception as e:
         print(f"Failed to download Google Drive file with ID {file_id}: {e}")
+        return False, str(e)  # Return failure status and the error message
 
 # Function to download PDF files directly from URL
 def download_pdf(pdf_url, folder_path):
@@ -78,17 +77,23 @@ def download_pdf(pdf_url, folder_path):
         file_name = pdf_url.split("/")[-1]
         file_path = os.path.join(folder_path, file_name)
 
-        # Ensure the folder exists
-        os.makedirs(folder_path, exist_ok=True)
-
         # Write the PDF to file
         with open(file_path, 'wb') as pdf_file:
             pdf_file.write(response.content)
         
         print(f"Downloaded PDF: {file_path}")
+        return True, None  # Return success status and no error
 
     except Exception as e:
         print(f"Failed to download PDF from {pdf_url}: {e}")
+        return False, str(e)  # Return failure status and the error message
+
+# Function to sanitize folder names (removes invalid characters for Windows)
+def sanitize_folder_name(name):
+    # Remove or replace characters that are invalid for Windows folder names
+    invalid_chars = r'[<>:"/\\|?*\'()]'  # Apostrophe and parentheses are included
+    sanitized_name = re.sub(invalid_chars, '', name)  # Remove invalid characters
+    return re.sub(r'\s+', ' ', sanitized_name).strip()  # Replace multiple spaces with a single space
 
 def main():
     # Load your Excel file
@@ -101,16 +106,23 @@ def main():
     base_download_path = './layoutDownloads'
     os.makedirs(base_download_path, exist_ok=True)
 
+    # List to track failed downloads with errors
+    failed_downloads = []
+
     for index, row in df.iterrows():
         drawing_links = row['Layout Link']  # Assume this is the column for links
         folder_no = row['No']  # Extract the number from the 'No' column
         person_name = row['Name']  # Extract the name from the 'Name' column
 
-        # Replace any '/' in the name with a space
+        # Replace any '/' in the name with a space and sanitize the name
         person_name = person_name.replace('/', ' ')
+        person_name = sanitize_folder_name(person_name)
 
         # Create folder name by appending 'No' value before the name
         person_folder = os.path.join(base_download_path, f"{folder_no}_{person_name}")
+
+        # Ensure the folder is created before any downloads
+        os.makedirs(person_folder, exist_ok=True)
 
         # Handle links (multiple links in "Layout Link")
         if pd.notna(drawing_links):  # Ensure the column has a value
@@ -121,12 +133,28 @@ def main():
 
                 # Check if the link is a Google Drive link
                 drive_id = extract_drive_id(link)
+                success = False  # Track if download was successful
+                error = None  # Track the error if any
+
                 if drive_id:
-                    download_file_from_gdrive(service, drive_id, person_folder)
+                    success, error = download_file_from_gdrive(service, drive_id, person_folder)
                 elif link.endswith('.pdf'):  # If it's a direct PDF link
-                    download_pdf(link, person_folder)
+                    success, error = download_pdf(link, person_folder)
                 else:
                     print(f"Skipping non-PDF and non-Google Drive link: {link}")
+                    continue  # Skip to the next link
+
+                # If download was not successful, track it with the error message
+                if not success:
+                    failed_downloads.append((row['No'], row['Name'], link, error))
+
+    # Print all failed downloads with error messages at the end
+    if failed_downloads:
+        print("\nFailed Layout Downloads:")
+        for failure in failed_downloads:
+            print(f"No: {failure[0]}, Name: {failure[1]}, Link: {failure[2]}, Error: {failure[3]}")
+    else:
+        print("\nAll layout downloads were successful.")
 
 if __name__ == "__main__":
     main()
