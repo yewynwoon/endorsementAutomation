@@ -109,13 +109,13 @@ def download_files_in_folder(service, folder_id, folder_path):
 
 def main():
     # Load your Excel file
-    df = pd.read_excel(r'C:\Users\yewyn\Documents\Verdant\BATCH 71.xlsx')
+    df = pd.read_excel(r'C:\Users\yewyn\Documents\Verdant\BATCH 86.xlsx')
 
     # Initialize Google Drive service (assuming you have authenticated)
     service = authenticate_gdrive()
 
     # Ensure a base download directory
-    base_download_path = './downloads'
+    base_download_path = './downloads/Batch 86'
     os.makedirs(base_download_path, exist_ok=True)
 
     for index, row in df.iterrows():
